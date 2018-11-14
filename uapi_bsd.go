@@ -167,7 +167,7 @@ func UAPIOpen(name string) (*os.File, error) {
 		return nil, err
 	}
 
-	oldUmask := unix.Umask(0077)
+	oldUmask := unix.Umask(uapiSocketUmask)
 	listener, err := func() (*net.UnixListener, error) {
 
 		// initial connection attempt
@@ -192,6 +192,12 @@ func UAPIOpen(name string) (*os.File, error) {
 		}
 		return net.ListenUnix("unix", addr)
 	}()
+
+	err = setUapiSocketPermissions(socketPath)
+	if err != nil {
+		return nil, err
+	}
+
 	unix.Umask(oldUmask)
 
 	if err != nil {
